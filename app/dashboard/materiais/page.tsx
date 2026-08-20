@@ -1,17 +1,17 @@
 'use client';
 
-import { createClient } from '@/lib/supabase/client';
+// O ERRO ESTAVA AQUI. Trocamos a importação.
+import { supabase } from '@/lib/supabase/client'; 
 import { useEffect, useState } from 'react';
 
 export default function MateriaisPage() {
-  const supabase = createClient();
+  // E aqui, removemos o "createClient()" e usamos o "supabase" direto
   const [materials, setMaterials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchMaterials() {
-      // Tenta buscar os materiais
       const { data, error } = await supabase
         .from('materials')
         .select(`
@@ -21,7 +21,6 @@ export default function MateriaisPage() {
         .order('name', { ascending: true });
 
       if (error) {
-        // Se der erro (ex: falta de variáveis de ambiente), a gente mostra o erro na tela ao invés de quebrar o site
         setError('Erro ao carregar materiais: ' + error.message);
         console.error(error);
       } else {
@@ -31,7 +30,7 @@ export default function MateriaisPage() {
     }
 
     fetchMaterials();
-  }, [supabase]);
+  }, []); // Removemos o supabase das dependências para evitar loops
 
   if (loading) {
     return <div className="p-6 text-gray-500">Carregando materiais...</div>;
@@ -42,7 +41,6 @@ export default function MateriaisPage() {
       <div className="p-6 bg-red-50 border border-red-200 text-red-700 rounded-lg">
         <h2 className="font-bold">Ops! Erro ao carregar.</h2>
         <p className="mt-2">{error}</p>
-        <p className="mt-4 text-sm">Verifique se as variáveis de ambiente (NEXT_PUBLIC_SUPABASE_URL e ANON_KEY) estão configuradas na Vercel.</p>
       </div>
     );
   }
