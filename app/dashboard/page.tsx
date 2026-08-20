@@ -1,12 +1,13 @@
 'use client';
 
-import { createClient } from '@/lib/supabase/client';
+// CORREÇÃO AQUI: Importe o supabase já instanciado (ou o createBrowserClient)
+import { supabase } from '@/lib/supabase/client'; 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function DashboardPage() {
-  const supabase = createClient();
+  // Removemos o createClient() e usamos o supabase direto
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -25,9 +26,9 @@ export default function DashboardPage() {
     }
 
     checkUser();
-  }, [supabase, router]);
+  }, [router]);
 
-  // Enquanto verifica o login, mostra um loading para não dar erro de loop
+  // Enquanto verifica o login, mostra um loading
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50">
@@ -36,7 +37,7 @@ export default function DashboardPage() {
     );
   }
 
-  // --- A PARTIR DAQUI É O SEU DASHBOARD (O que você já tinha) ---
+  // --- DASHBOARD ---
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Bem-vindo!</h1>
