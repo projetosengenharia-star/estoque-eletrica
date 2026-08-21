@@ -80,7 +80,7 @@ export default function MateriaisPage() {
     setIsDeleting(false);
   }
 
-  // Executa a exclusão de verdade
+   // Executa a exclusão de verdade
   async function handleConfirmDelete() {
     if (!itemToDelete) return;
     setIsDeleting(true);
@@ -91,10 +91,10 @@ export default function MateriaisPage() {
       .eq('id', itemToDelete.id);
 
     if (error) {
-      alert('Erro ao excluir: ' + error.message);
+      // Vamos mostrar o erro exato que o banco está retornando
+      alert('Erro detalhado ao excluir: ' + error.message + ' | Código: ' + error.code);
       setIsDeleting(false);
     } else {
-      // Fecha o modal e atualiza a lista imediatamente
       handleCloseModal();
       fetchMaterials();
     }
