@@ -6,13 +6,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function MateriaisPage() {
-  // ⚠️ LINHA 9 REMOVIDA AQUI! Usamos o supabase importado diretamente.
   const router = useRouter();
   const [materials, setMaterials] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  
+  // Estados para o modal de exclusão
+  const [itemToDelete, setItemToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Função para buscar materiais
   async function fetchMaterials() {
@@ -61,14 +64,39 @@ export default function MateriaisPage() {
     return () => clearTimeout(timeout);
   }, [search, selectedCategory]);
 
-  async function handleDelete(id: string) {
-    if (confirm('Tem certeza que deseja excluir este material?')) {
-      const { error } = await supabase.from('materials').delete().eq('id', id);
-      if (!error) {
-        fetchMaterials();
-      } else {
-        alert('Erro ao excluir: ' + error.message);
-      }
+  // Quando a página é montada, busca os materiais
+  useEffect(() => {
+    fetchMaterials();
+  }, []);
+
+  // Abre o modal de exclusão
+  function handleDeleteClick(material: any) {
+    setItemToDelete(material);
+  }
+
+  // Fecha o modal
+  function handleCloseModal() {
+    setItemToDelete(null);
+    setIsDeleting(false);
+  }
+
+  // Executa a exclusão de verdade
+  async function handleConfirmDelete() {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
+
+    const { error } = await supabase
+      .from('materials')
+      .delete()
+      .eq('id', itemToDelete.id);
+
+    if (error) {
+      alert('Erro ao excluir: ' + error.message);
+      setIsDeleting(false);
+    } else {
+      // Fecha o modal e atualiza a lista imediatamente
+      handleCloseModal();
+      fetchMaterials();
     }
   }
 
@@ -141,7 +169,7 @@ export default function MateriaisPage() {
                     <Link href={`/dashboard/materiais/editar/${material.id}`} className="text-indigo-600 hover:text-indigo-900 mr-3">
                       Editar
                     </Link>
-                    <button onClick={() => handleDelete(material.id)} className="text-red-600 hover:text-red-900">
+                    <button onClick={() => handleDeleteClick(material)} className="text-red-600 hover:text-red-900">
                       Excluir
                     </button>
                   </td>
@@ -157,6 +185,33 @@ export default function MateriaisPage() {
           </tbody>
         </table>
       </div>
+
+      {/* MODAL DE EXCLUSÃO (Customizado) */}
+      {itemToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Confirmar Exclusão</h2>
+            <p className="text-gray-600 mb-6">
+              Tem certeza que deseja excluir o material <strong>{itemToDelete.name}</strong>? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={handleCloseModal}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition disabled:opacity-50"
+              >
+                {isDeleting ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
