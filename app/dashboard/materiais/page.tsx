@@ -1,11 +1,12 @@
 'use client';
 
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function MateriaisPage() {
+  const supabase = createClient();
   const router = useRouter();
   const [materials, setMaterials] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -80,23 +81,43 @@ export default function MateriaisPage() {
     setIsDeleting(false);
   }
 
-   // Executa a exclusão de verdade
+  // Executa a exclusão de verdade
   async function handleConfirmDelete() {
     if (!itemToDelete) return;
     setIsDeleting(true);
 
-    const { error } = await supabase
-      .from('materials')
-      .delete()
-      .eq('id', itemToDelete.id);
+    try {
+      // Força a autenticação para ter certeza que está logado
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        alert('Sessão expirada. Faça login novamente.');
+        setIsDeleting(false);
+        return;
+      }
 
-    if (error) {
-      // Vamos mostrar o erro exato que o banco está retornando
-      alert('Erro detalhado ao excluir: ' + error.message + ' | Código: ' + error.code);
+      const { error } = await supabase
+        .from('materials')
+        .delete()
+        .eq('id', itemToDelete.id);
+
+      if (error) {
+        alert('Erro ao excluir: ' + error.message);
+        setIsDeleting(false);
+      } else {
+        // Fecha o modal
+        handleCloseModal();
+        
+        // Chama a função de buscar DENTRO dela mesma para forçar a atualização
+        await fetchMaterials();
+        
+        // Reseta a busca para garantir que a lista inteira foi atualizada
+        setSearch('');
+        setSelectedCategory('');
+      }
+    } catch (err) {
+      alert('Erro inesperado: ' + (err as Error).message);
       setIsDeleting(false);
-    } else {
-      handleCloseModal();
-      fetchMaterials();
     }
   }
 

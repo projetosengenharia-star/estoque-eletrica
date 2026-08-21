@@ -1,10 +1,11 @@
 'use client';
 
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
 export default function EditarMaterialPage() {
+  const supabase = createClient();
   const router = useRouter();
   const params = useParams();
   const materialId = params.id;
@@ -38,7 +39,7 @@ export default function EditarMaterialPage() {
       setCategories(data || []);
     }
     fetchCategories();
-  }, []);
+  }, [supabase]);
 
   // Buscar o material pelo ID
   useEffect(() => {
@@ -77,7 +78,7 @@ export default function EditarMaterialPage() {
     if (materialId) {
       fetchMaterial();
     }
-  }, [materialId, router]);
+  }, [materialId, router, supabase]);
 
   function handleChange(e: any) {
     const { name, value, type, checked } = e.target;

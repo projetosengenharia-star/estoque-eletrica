@@ -1,10 +1,11 @@
 'use client';
 
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function NovoMaterialPage() {
+  const supabase = createClient();
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,14 +29,14 @@ export default function NovoMaterialPage() {
     is_active: true,
   });
 
-  // Buscar categorias para o select
+  // Buscar categorias para el select
   useEffect(() => {
     async function fetchCategories() {
       const { data } = await supabase.from('categories').select('*').order('name');
       setCategories(data || []);
     }
     fetchCategories();
-  }, []);
+  }, [supabase]);
 
   // Função para atualizar os campos
   function handleChange(e: any) {
@@ -46,7 +47,7 @@ export default function NovoMaterialPage() {
     });
   }
 
-  // Função para salvar (CORRIGIDA)
+  // Função para salvar
   async function handleSubmit(e: any) {
     e.preventDefault();
     setLoading(true);
